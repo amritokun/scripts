@@ -76,7 +76,7 @@ send_message "🔥 *${KERNEL_NAME} Kernel Build Started\!*
 📱 *Device:* \`${DEVICE_NAME} (${DEVICE_CODENAME})\`
 🖥 *Building on:* \`$(hostname)\`
 ⚙️ *Compiler:* \`${COMPILER_NAME}\`
-🔰 *Build Status:* STABLE"
+🔰 *Build Status:*   \`${BUILD_STATUS}\`"
 
 # Clean previous builds
 make O=out clean
