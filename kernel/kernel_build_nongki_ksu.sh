@@ -22,6 +22,10 @@ SF_USER="your_sf_username"
 SF_PROJECT="your_project_name"        # lowercase
 SF_FOLDER="KernelBuilds"              # folder inside SF project
 
+# Changelog Repo Config
+CHANGELOG_REPO="$HOME/changelogs"     # local clone of your GitHub changelogs repo
+CHANGELOG_DEVICE_DIR="${CHANGELOG_REPO}/${DEVICE_CODENAME}"
+
 BUILD_HOSTNAME=$(hostname)
 COMPILER_PATH="$HOME/clang-r547379/bin"
 
@@ -112,6 +116,32 @@ upload_to_sourceforge() {
         send_message "$(escape_markdown "📤 Uploaded to SourceForge successfully")"
     fi
 }
+# Push changelogs
+
+push_changelog() {
+    local DATE_TAG
+    DATE_TAG="$(date '+%Y-%m-%d_%H-%M')"
+    local FILE="${CHANGELOG_DEVICE_DIR}/${DATE_TAG}.txt"
+
+    mkdir -p "${CHANGELOG_DEVICE_DIR}"
+
+    {
+        echo "Kernel: ${KERNEL_NAME}"
+        echo "Device: ${DEVICE_NAME} (${DEVICE_CODENAME})"
+        echo "Build Type: ${BUILD_STATUS}"
+        echo "Compiler: ${COMPILER_NAME}"
+        echo "Date: ${DATE_TAG}"
+        echo ""
+        echo "==== Latest Commits ===="
+        git log --oneline -10
+    } > "${FILE}"
+
+    cd "${CHANGELOG_REPO}" || exit 1
+    git pull --rebase
+    git add "${FILE}"
+    git commit -m "changelog(${DEVICE_CODENAME}): ${KERNEL_NAME} ${BUILD_STATUS} ${DATE_TAG}"
+    git push
+}
 
 
 # Clone Clang if missing
@@ -170,6 +200,14 @@ if [ "$BUILD_STATUS" = "STABLE" ] || [ "$BUILD_STATUS" = "RELEASE" ]; then
     upload_to_sourceforge "../$FINAL_KERNEL_ZIP"
 else
     echo "Skipping SourceForge upload (non-release build)"
+fi
+
+# Push changelog only for release/stable builds
+if [ "$BUILD_STATUS" = "STABLE" ] || [ "$BUILD_STATUS" = "RELEASE" ]; then
+    echo "Pushing changelog..."
+    push_changelog
+else
+    echo "Skipping changelog push (non-release build)"
 fi
 
 # Upload only if NOT a release/STABLE build
