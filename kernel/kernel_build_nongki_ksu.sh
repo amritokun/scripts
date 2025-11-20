@@ -15,11 +15,50 @@ DEVICE_NAME=""      # Device Market name (e.g., POCO X4 PRO 5G)
 KERNEL_NAME=""      # Kernel name
 KERNEL_DEFCONFIG="${DEVICE_CODENAME}_defconfig"
 ANYKERNEL3_DIR=$PWD/AnyKernel3/
-FINAL_KERNEL_ZIP="${KERNEL_NAME}-[KSU]-Kernel-${DEVICE_CODENAME}-$(date '+%Y%m%d').zip"
-BUILD_STATUS="STABLE"
+FINAL_KERNEL_ZIP=FINAL_KERNEL_ZIP="${KERNEL_NAME}-${BUILD_STATUS}-Kernel-${DEVICE_CODENAME}-$(date '+%Y%m%d').zip"
 
 BUILD_HOSTNAME=$(hostname)
 COMPILER_PATH="$HOME/clang-r547379/bin"
+
+echo ""
+echo "=============================="
+echo "   SELECT YOUR BUILD TYPE"
+echo "=============================="
+echo ""
+
+PS3="Choose option (1-5): "
+
+select opt in "STABLE" "BETA" "ALPHA" "TEST" "CUSTOM"; do
+    case $opt in
+        "STABLE")
+            BUILD_STATUS="STABLE"
+            break
+            ;;
+        "BETA")
+            BUILD_STATUS="BETA"
+            break
+            ;;
+        "ALPHA")
+            BUILD_STATUS="ALPHA"
+            break
+            ;;
+        "TEST")
+            BUILD_STATUS="TEST"
+            break
+            ;;
+        "CUSTOM")
+            read -rp "Enter custom tag: " CUSTOM_TAG
+            BUILD_STATUS="$CUSTOM_TAG"
+            break
+            ;;
+        *)
+            echo "Invalid choice. Try again."
+            ;;
+    esac
+done
+echo ""
+echo ">>> Selected Build Type: $BUILD_STATUS"
+echo ""
 
 # MarkdownV2 escape function for Telegram
 escape_markdown() {
