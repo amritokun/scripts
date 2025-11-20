@@ -141,12 +141,14 @@ cp $PWD/out/arch/arm64/boot/dts/vendor/xiaomi/$DEVICE_CODENAME.dtb $ANYKERNEL3_D
 cd $ANYKERNEL3_DIR/
 zip -r9 "../$FINAL_KERNEL_ZIP" * -x README $FINAL_KERNEL_ZIP
 
-# Upload to Telegram
-send_message "$(escape_markdown "📤 Uploading ${KERNEL_NAME} Kernel zip...")"
-curl -F chat_id="$CHAT_ID" \
-     -F document=@"../$FINAL_KERNEL_ZIP" \
-     -F parse_mode="MarkdownV2" \
-     -F caption="✅ *$(escape_markdown "$KERNEL_NAME") Kernel for $(escape_markdown "$DEVICE_CODENAME") $(escape_markdown "$DEVICE_NAME")*
+# Upload only if NOT a release/STABLE build
+if [ "$BUILD_STATUS" != "STABLE" ] && [ "$BUILD_STATUS" != "RELEASE" ]; then
+    send_message "$(escape_markdown "📤 Uploading ${KERNEL_NAME} Kernel zip...")"
+
+    curl -F chat_id="$CHAT_ID" \
+         -F document=@"../$FINAL_KERNEL_ZIP" \
+         -F parse_mode="MarkdownV2" \
+         -F caption="✅ *$(escape_markdown "$KERNEL_NAME") Kernel for $(escape_markdown "$DEVICE_CODENAME") $(escape_markdown "$DEVICE_NAME")*
 🖥️ *Built on:* \`$(escape_markdown "$BUILD_HOSTNAME")\`
 ⚙️ *Compiler:* \`$(escape_markdown "$COMPILER_NAME")\`
 🔰 *Build Status:* \`$(escape_markdown "$BUILD_STATUS")\`" \
