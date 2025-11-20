@@ -17,6 +17,11 @@ KERNEL_DEFCONFIG="${DEVICE_CODENAME}_defconfig"
 ANYKERNEL3_DIR=$PWD/AnyKernel3/
 FINAL_KERNEL_ZIP=FINAL_KERNEL_ZIP="${KERNEL_NAME}-${BUILD_STATUS}-Kernel-${DEVICE_CODENAME}-$(date '+%Y%m%d').zip"
 
+# SourceForge Upload Config
+SF_USER="your_sf_username"
+SF_PROJECT="your_project_name"        # lowercase
+SF_FOLDER="KernelBuilds"              # folder inside SF project
+
 BUILD_HOSTNAME=$(hostname)
 COMPILER_PATH="$HOME/clang-r547379/bin"
 
@@ -90,6 +95,25 @@ send_message() {
          -d "text=$1"
 }
 
+# Upload to SF
+upload_to_sourceforge() {
+    local ZIP_FILE="$1"
+    local REMOTE_PATH="/home/frs/project/${SF_PROJECT:0:1}/${SF_PROJECT:0:1}${SF_PROJECT:1:1}/${SF_PROJECT}/${SF_FOLDER}/"
+
+    echo "Uploading $ZIP_FILE to SourceForge..."
+
+    rsync -avP --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r \
+        "$ZIP_FILE" \
+        "${SF_USER}@frs.sourceforge.net:${REMOTE_PATH}"
+
+    if [ $? -ne 0 ]; then
+        send_message "$(escape_markdown "❌ SourceForge upload failed!")"
+    else
+        send_message "$(escape_markdown "📤 Uploaded to SourceForge successfully")"
+    fi
+}
+
+
 # Clone Clang if missing
 if ! [ -d "$HOME/clang-r547379" ]; then
     send_message "$(escape_markdown "⚙️ Clang not found! Cloning...")"
@@ -140,6 +164,13 @@ cp $PWD/out/arch/arm64/boot/dts/vendor/xiaomi/$DEVICE_CODENAME.dtb $ANYKERNEL3_D
 
 cd $ANYKERNEL3_DIR/
 zip -r9 "../$FINAL_KERNEL_ZIP" * -x README $FINAL_KERNEL_ZIP
+
+# Upload ONLY release/stable builds to SourceForge
+if [ "$BUILD_STATUS" = "STABLE" ] || [ "$BUILD_STATUS" = "RELEASE" ]; then
+    upload_to_sourceforge "../$FINAL_KERNEL_ZIP"
+else
+    echo "Skipping SourceForge upload (non-release build)"
+fi
 
 # Upload only if NOT a release/STABLE build
 if [ "$BUILD_STATUS" != "STABLE" ] && [ "$BUILD_STATUS" != "RELEASE" ]; then
