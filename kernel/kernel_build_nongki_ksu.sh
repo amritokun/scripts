@@ -15,12 +15,12 @@ DEVICE_NAME=""      # Device Market name (e.g., POCO X4 PRO 5G)
 KERNEL_NAME=""      # Kernel name
 KERNEL_DEFCONFIG="${DEVICE_CODENAME}_defconfig"
 ANYKERNEL3_DIR=$PWD/AnyKernel3/
-FINAL_KERNEL_ZIP=FINAL_KERNEL_ZIP="${KERNEL_NAME}-${BUILD_STATUS}-Kernel-${DEVICE_CODENAME}-$(date '+%Y%m%d').zip"
+FINAL_KERNEL_ZIP=FINAL_KERNEL_ZIP="${KERNEL_NAME}-[KSU]-${BUILD_STATUS}-Kernel-${DEVICE_CODENAME}-$(date '+%Y%m%d').zip"
 
 # SourceForge Upload Config
-SF_USER="your_sf_username"
-SF_PROJECT="your_project_name"        # lowercase
-SF_FOLDER="KernelBuilds"              # folder inside SF project
+SF_USER=""
+SF_PROJECT=""        # lowercase
+SF_FOLDER=""              # folder inside SF project
 
 # Changelog Repo Config
 CHANGELOG_REPO="$HOME/changelogs"     # local clone of your GitHub changelogs repo
@@ -83,13 +83,13 @@ else
 fi
 
 export ARCH=arm64
-export KBUILD_BUILD_HOST=$BUILD_HOSTNAME
-export KBUILD_BUILD_USER="GoogleFucksYou"
+export KBUILD_BUILD_HOST=""
+export KBUILD_BUILD_USER=""
 export KBUILD_COMPILER_STRING="$COMPILER_NAME"
 
 # Telegram Bot Config
-BOT_TOKEN="put telegram bot token"
-CHAT_ID="put telegram channel/chat id"
+BOT_TOKEN=""
+CHAT_ID=""
 
 # Function to send Telegram message
 send_message() {
@@ -133,7 +133,7 @@ push_changelog() {
         echo "Date: ${DATE_TAG}"
         echo ""
         echo "==== Latest Commits ===="
-        git log --oneline -10
+        git log --oneline -100
     } > "${FILE}"
 
     cd "${CHANGELOG_REPO}" || exit 1
@@ -192,12 +192,14 @@ cp $PWD/out/arch/arm64/boot/Image $ANYKERNEL3_DIR/
 cp $PWD/out/arch/arm64/boot/dtbo.img $ANYKERNEL3_DIR/
 cp $PWD/out/arch/arm64/boot/dts/vendor/xiaomi/$DEVICE_CODENAME.dtb $ANYKERNEL3_DIR/dtb
 
+
 cd $ANYKERNEL3_DIR/
 zip -r9 "../$FINAL_KERNEL_ZIP" * -x README $FINAL_KERNEL_ZIP
+cd ..
 
 # Upload ONLY release/stable builds to SourceForge
 if [ "$BUILD_STATUS" = "STABLE" ] || [ "$BUILD_STATUS" = "RELEASE" ]; then
-    upload_to_sourceforge "../$FINAL_KERNEL_ZIP"
+    upload_to_sourceforge "$PWD/$FINAL_KERNEL_ZIP"
 else
     echo "Skipping SourceForge upload (non-release build)"
 fi
@@ -222,6 +224,7 @@ if [ "$BUILD_STATUS" != "STABLE" ] && [ "$BUILD_STATUS" != "RELEASE" ]; then
 ⚙️ *Compiler:* \`$(escape_markdown "$COMPILER_NAME")\`
 🔰 *Build Status:* \`$(escape_markdown "$BUILD_STATUS")\`" \
      "https://api.telegram.org/bot$BOT_TOKEN/sendDocument"
+fi
 
 # Finish
 BUILD_END=$(date +"%s")
