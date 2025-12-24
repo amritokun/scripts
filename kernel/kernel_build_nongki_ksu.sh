@@ -31,7 +31,7 @@ ANYKERNEL3_BRANCH="master"
 ANYKERNEL3_DIR="$PWD/AnyKernel3"
 
 BUILD_HOSTNAME=$(hostname)
-COMPILER_PATH="$HOME/clang-r547379/bin"
+COMPILER_PATH="$HOME/clang/bin"
 
 echo ""
 echo "=============================="
@@ -148,9 +148,9 @@ push_changelog() {
 
 
 # Clone Clang if missing
-if ! [ -d "$HOME/clang-r547379" ]; then
+if ! [ -d "$HOME/clang" ]; then
     send_message "$(escape_markdown "⚙️ Clang not found! Cloning...")"
-    if ! git clone -q https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r547379.git -b 15.0 --depth=1 --single-branch ~/clang-r547379; then
+    if ! git clone -q https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r547379.git -b 15.0 --depth=1 --single-branch ~/clang; then
         send_message "$(escape_markdown "❌ Cloning failed! Aborting...")"
         exit 1
     fi
