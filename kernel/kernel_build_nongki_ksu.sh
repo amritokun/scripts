@@ -14,7 +14,6 @@ DEVICE_CODENAME=""  # Device codename (e.g., veux, garnet, etc.)
 DEVICE_NAME=""      # Device Market name (e.g., POCO X4 PRO 5G)
 KERNEL_NAME=""      # Kernel name
 KERNEL_DEFCONFIG="${DEVICE_CODENAME}_defconfig"
-ANYKERNEL3_DIR=$PWD/AnyKernel3/
 FINAL_KERNEL_ZIP=FINAL_KERNEL_ZIP="${KERNEL_NAME}-[KSU]-${BUILD_STATUS}-Kernel-${DEVICE_CODENAME}-$(date '+%Y%m%d').zip"
 
 # SourceForge Upload Config
@@ -25,6 +24,11 @@ SF_FOLDER=""              # folder inside SF project
 # Changelog Repo Config
 CHANGELOG_REPO="$HOME/changelogs"     # local clone of your GitHub changelogs repo
 CHANGELOG_DEVICE_DIR="${CHANGELOG_REPO}/${DEVICE_CODENAME}"
+
+# AnyKernel3 Config
+ANYKERNEL3_REPO="https://github.com/osm0sis/AnyKernel3.git"
+ANYKERNEL3_BRANCH="master"
+ANYKERNEL3_DIR="$PWD/AnyKernel3"
 
 BUILD_HOSTNAME=$(hostname)
 COMPILER_PATH="$HOME/clang-r547379/bin"
@@ -117,7 +121,6 @@ upload_to_sourceforge() {
     fi
 }
 # Push changelogs
-
 push_changelog() {
     local DATE_TAG
     DATE_TAG="$(date '+%Y-%m-%d_%H-%M')"
@@ -149,6 +152,15 @@ if ! [ -d "$HOME/clang-r547379" ]; then
     send_message "$(escape_markdown "⚙️ Clang not found! Cloning...")"
     if ! git clone -q https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r547379.git -b 15.0 --depth=1 --single-branch ~/clang-r547379; then
         send_message "$(escape_markdown "❌ Cloning failed! Aborting...")"
+        exit 1
+    fi
+fi
+
+# Clone AnyKernel3 if missing
+if [ ! -d "$ANYKERNEL3_DIR" ]; then
+    send_message "$(escape_markdown "📦 AnyKernel3 not found. Cloning...")"
+    if ! git clone -q --depth=1 -b "$ANYKERNEL3_BRANCH" "$ANYKERNEL3_REPO" "$ANYKERNEL3_DIR"; then
+        send_message "$(escape_markdown "❌ Failed to clone AnyKernel3. Aborting build.")"
         exit 1
     fi
 fi
